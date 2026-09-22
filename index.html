@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>無機化学 一問一答フラッシュカード | 大学受験対策</title>
+  <meta name="description" content="大学受験生向けの無機化学一問一答フラッシュカードWebアプリ。講義の進度に合わせて範囲を自由に指定してサクサク復習できます。">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              200: '#bfdbfe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts (Noto Sans JP) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
+  <!-- アプリCSS -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
+
+  <!-- ============================================================ -->
+  <!-- ヘッダー -->
+  <!-- ============================================================ -->
+  <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-2.5">
+        <span class="text-2xl p-1.5 bg-blue-100 text-blue-700 rounded-xl shadow-xs">🧪</span>
+        <div>
+          <h1 class="text-base sm:text-lg font-bold text-slate-900 leading-tight">無機化学 一問一答</h1>
+          <p class="text-xs text-slate-500 hidden sm:block">大学受験 必須知識フラッシュカード</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="total-questions-badge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+          読込中...
+        </span>
+
+        <!-- 問題一覧・チェックモーダルを開くボタン -->
+        <button id="btn-open-list-modal" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 transition flex items-center gap-1 shadow-2xs" title="登録されている問題を一覧で確認">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+          </svg>
+          <span>問題一覧</span>
+        </button>
+
+        <!-- 外部JSONインポート用ボタン -->
+        <label for="file-input-json" class="cursor-pointer text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 transition flex items-center gap-1" title="自作の questions.json を読み込む">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+          </svg>
+          <span class="hidden md:inline">JSON読込</span>
+        </label>
+        <input type="file" id="file-input-json" accept=".json" class="hidden">
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- メインコンテンツ -->
+  <!-- ============================================================ -->
+  <main class="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col justify-center">
+
+    <!-- ============================================================ -->
+    <!-- 1. 範囲指定・スタート画面 -->
+    <!-- ============================================================ -->
+    <section id="screen-start" class="w-full max-w-xl mx-auto space-y-6">
+      <!-- ヒーローセクション -->
+      <div class="text-center space-y-2">
+        <span class="inline-block text-xs font-bold tracking-wider text-blue-700 bg-blue-50 border border-blue-200/80 px-3 py-1 rounded-full">
+          毎週の講義に合わせてサクサク復習！
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          出題範囲とモードを選択
+        </h2>
+        <p class="text-sm text-slate-600">
+          受講済みの講数を指定して、知識の定着度をテストしましょう。
+        </p>
+      </div>
+
+      <!-- 設定カード -->
+      <div class="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-6">
+        
+        <!-- 出題範囲（講数選択） -->
+        <div class="space-y-3">
+          <label class="block text-sm font-bold text-slate-700 flex items-center justify-between">
+            <span>出題範囲（講数）</span>
+            <span class="text-xs font-normal text-slate-500">※最新講まで自由に指定可能</span>
+          </label>
+
+          <div class="grid grid-cols-2 gap-3 items-center">
+            <!-- 下限 -->
+            <div>
+              <span class="block text-xs text-slate-500 mb-1 font-medium">開始（From）</span>
+              <div class="relative">
+                <select id="select-start-unit" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2.5 px-3 font-semibold text-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none">
+                  <!-- JSで動的生成 -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  ▼
+                </div>
+              </div>
+            </div>
+
+            <!-- 上限 -->
+            <div>
+              <span class="block text-xs text-slate-500 mb-1 font-medium">終了（To）</span>
+              <div class="relative">
+                <select id="select-end-unit" class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2.5 px-3 font-semibold text-slate-800 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none appearance-none">
+                  <!-- JSで動的生成 -->
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                  ▼
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 各講の単元内容プレビュー -->
+          <div class="pt-2">
+            <div class="text-xs font-medium text-slate-500 mb-2 flex items-center justify-between">
+              <span>収録単元一覧</span>
+              <span class="text-[11px] text-blue-600">青枠が対象範囲</span>
+            </div>
+            <div id="unit-overview-container" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto custom-scrollbar p-1">
+              <!-- JSで動的生成 -->
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- 問題レベル（難易度）選択 -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-bold text-slate-700">問題レベル（難易度）</label>
+            <span class="text-xs text-slate-400">学習スタイルで選択</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <!-- すべて -->
+            <label class="cursor-pointer">
+              <input type="radio" name="level-filter" value="all" checked class="peer sr-only">
+              <div class="p-2.5 sm:p-3 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/70 peer-checked:text-blue-700 transition hover:bg-slate-50">
+                <div class="font-bold text-xs sm:text-sm">🌐 すべて</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">全問題</div>
+              </div>
+            </label>
+
+            <!-- Lv.1 秒殺一問一答 -->
+            <label class="cursor-pointer">
+              <input type="radio" name="level-filter" value="1" class="peer sr-only">
+              <div class="p-2.5 sm:p-3 text-center rounded-xl border border-slate-200 peer-checked:border-sky-600 peer-checked:bg-sky-50/70 peer-checked:text-sky-700 transition hover:bg-slate-50">
+                <div class="font-bold text-xs sm:text-sm text-sky-700">⚡ Lv.1 秒殺</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">即答スピード</div>
+              </div>
+            </label>
+
+            <!-- Lv.2 標準・総合 -->
+            <label class="cursor-pointer">
+              <input type="radio" name="level-filter" value="2" class="peer sr-only">
+              <div class="p-2.5 sm:p-3 text-center rounded-xl border border-slate-200 peer-checked:border-indigo-600 peer-checked:bg-indigo-50/70 peer-checked:text-indigo-700 transition hover:bg-slate-50">
+                <div class="font-bold text-xs sm:text-sm text-indigo-700">📚 Lv.2 総合</div>
+                <div class="text-[10px] sm:text-[11px] text-slate-500 mt-0.5">理由・記述</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 重要度絞り込み（オプション） -->
+        <div class="flex items-center justify-between bg-amber-50/70 p-3 rounded-xl border border-amber-200/80">
+          <div class="flex items-center gap-2">
+            <span class="text-amber-500 font-extrabold text-sm">⭐</span>
+            <div>
+              <div class="text-xs font-bold text-slate-800">最重要問題（★★★）のみに絞り込む</div>
+              <div class="text-[10px] text-slate-500">共通テスト・入試で絶対に落とせない超重要問に集中</div>
+            </div>
+          </div>
+          <label class="relative inline-flex items-center cursor-pointer shrink-0">
+            <input type="checkbox" id="filter-importance-only" class="sr-only peer">
+            <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+          </label>
+        </div>
+
+        <hr class="border-slate-100">
+
+        <!-- 出題モード選択 -->
+        <div class="space-y-3">
+          <label class="block text-sm font-bold text-slate-700">出題モード</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <!-- 全問シャッフル -->
+            <label class="cursor-pointer">
+              <input type="radio" name="quiz-mode" value="all" checked class="peer sr-only">
+              <div class="p-3 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/70 peer-checked:text-blue-700 transition hover:bg-slate-50">
+                <div class="font-bold text-sm">全問出題</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">シャッフル</div>
+              </div>
+            </label>
+
+            <!-- 10問テスト -->
+            <label class="cursor-pointer">
+              <input type="radio" name="quiz-mode" value="10" class="peer sr-only">
+              <div class="p-3 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/70 peer-checked:text-blue-700 transition hover:bg-slate-50">
+                <div class="font-bold text-sm">10問テスト</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">スピード確認</div>
+              </div>
+            </label>
+
+            <!-- 20問テスト -->
+            <label class="cursor-pointer">
+              <input type="radio" name="quiz-mode" value="20" class="peer sr-only">
+              <div class="p-3 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/70 peer-checked:text-blue-700 transition hover:bg-slate-50">
+                <div class="font-bold text-sm">20問テスト</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">実戦チェック</div>
+              </div>
+            </label>
+
+            <!-- 順番通り -->
+            <label class="cursor-pointer">
+              <input type="radio" name="quiz-mode" value="order" class="peer sr-only">
+              <div class="p-3 text-center rounded-xl border border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50/70 peer-checked:text-blue-700 transition hover:bg-slate-50">
+                <div class="font-bold text-sm">全問（順）</div>
+                <div class="text-[11px] text-slate-500 mt-0.5">講義番号順</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- 対象問題数プレビュー & スタートボタン -->
+        <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <span class="text-xs text-slate-500 block">選択中の出題数</span>
+            <span id="target-count-preview" class="text-lg font-bold text-slate-800">
+              0 問
+            </span>
+          </div>
+
+          <button id="btn-start" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-md hover:shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+            <span>学習をスタート</span>
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+            </svg>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 操作ヒント -->
+      <div class="text-center text-xs text-slate-500 flex items-center justify-center gap-4 flex-wrap">
+        <span>🖱️ タップ/クリックでカード反転</span>
+        <span>⌨️ <kbd>Space</kbd> で反転</span>
+        <span>⌨️ <kbd>←</kbd> 要復習 / <kbd>→</kbd> 覚えた</span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 2. フラッシュカード画面 -->
+    <!-- ============================================================ -->
+    <section id="screen-card" class="hidden w-full max-w-xl mx-auto space-y-4">
+      
+      <!-- 上部ステータスバー -->
+      <div class="bg-white rounded-xl p-3 border border-slate-200 shadow-2xs space-y-2">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-600">
+          <div class="flex items-center gap-2">
+            <button id="btn-quit-card" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 transition flex items-center gap-1" title="トップ画面に戻る">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+              </svg>
+              <span>中断</span>
+            </button>
+            <span id="card-scope-text" class="text-slate-800 font-bold bg-slate-100 px-2.5 py-0.5 rounded-full">
+              第1講〜第3講
+            </span>
+          </div>
+
+          <!-- カウンターとミニ成績 -->
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 text-[11px]">
+              <span class="text-emerald-600 font-bold">覚えた <span id="stat-correct-count">0</span></span>
+              <span class="text-slate-300">/</span>
+              <span class="text-rose-600 font-bold">要復習 <span id="stat-review-count">0</span></span>
+            </div>
+            <span id="card-progress-text" class="text-blue-700 font-bold text-sm">
+              1 / 10 問
+            </span>
+          </div>
+        </div>
+
+        <!-- プログレスバー -->
+        <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+          <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <!-- フラッシュカード（3Dフリップ＆スワイプステージ） -->
+      <div id="card-wrapper" class="card-perspective w-full select-none tap-highlight-transparent relative">
+        
+        <!-- スワイプドラッグ用コンテナ -->
+        <div id="card-drag-container" class="card-drag-container">
+          
+          <!-- スワイプスタンプ（右スワイプ: 覚えた） -->
+          <div id="stamp-correct" class="swipe-stamp stamp-correct">
+            覚えた！ ✅
+          </div>
+
+          <!-- スワイプスタンプ（左スワイプ: もう一度） -->
+          <div id="stamp-review" class="swipe-stamp stamp-review">
+            もう一度 🔄
+          </div>
+
+          <!-- 3Dフリップインナー -->
+          <div id="card-inner" class="card-inner">
+            
+            <!-- 表面（問題） -->
+            <div class="card-face card-front p-5 sm:p-7 flex flex-col justify-between">
+              <!-- 単元バッジ -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span id="badge-unit" class="text-xs font-bold px-2.5 py-1 rounded-md bg-blue-100 text-blue-700">
+                    第1講
+                  </span>
+                  <span id="badge-level" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">
+                    ⚡ Lv.1 秒殺
+                  </span>
+                  <span id="badge-importance" class="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                    ★★★
+                  </span>
+                  <span id="badge-category" class="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                    アルカリ金属
+                  </span>
+                </div>
+                <span class="text-xs text-blue-500 font-bold bg-blue-50 px-2 py-0.5 rounded-full shrink-0">
+                  問題
+                </span>
+              </div>
+
+              <!-- 問題文 -->
+              <div class="my-auto py-4 overflow-y-auto max-h-52 custom-scrollbar">
+                <p class="text-xs text-blue-600 font-bold mb-1 uppercase tracking-wider">Question</p>
+                <h3 id="card-question-text" class="text-base sm:text-xl font-bold text-slate-800 leading-relaxed">
+                  問題文がここに表示されます。
+                </h3>
+              </div>
+
+              <!-- タップ案内 -->
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                <span class="flex items-center gap-1.5 text-blue-600 font-bold">
+                  <svg class="w-4 h-4 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"></path>
+                  </svg>
+                  <span>タップして答えを確認</span>
+                </span>
+                <span class="text-slate-400 text-[11px] font-medium">裏面で左右スワイプ判定</span>
+              </div>
+            </div>
+
+            <!-- 裏面（解答・解説） -->
+            <div class="card-face card-back p-5 sm:p-7 flex flex-col justify-between">
+              <!-- 単元バッジ -->
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span id="badge-unit-back" class="text-xs font-bold px-2.5 py-1 rounded-md bg-emerald-100 text-emerald-800">
+                    第1講
+                  </span>
+                  <span id="badge-level-back" class="text-[11px] font-bold px-2 py-0.5 rounded-md bg-sky-100 text-sky-800">
+                    ⚡ Lv.1 秒殺
+                  </span>
+                  <span id="badge-importance-back" class="text-[11px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-800 border border-amber-200">
+                    ★★★
+                  </span>
+                  <span id="badge-category-back" class="text-xs font-medium px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700">
+                    アルカリ金属
+                  </span>
+                </div>
+                <span class="text-xs text-emerald-600 font-bold bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">
+                  正解・解説
+                </span>
+              </div>
+
+              <!-- 解答・解説 -->
+              <div class="my-auto py-3 overflow-y-auto max-h-56 custom-scrollbar space-y-2.5">
+                <div>
+                  <p class="text-xs text-emerald-700 font-bold uppercase tracking-wider mb-1">Answer</p>
+                  <div id="card-answer-text" class="text-base sm:text-xl font-extrabold text-emerald-950 leading-relaxed">
+                    正解がここに大きく表示されます。
+                  </div>
+                </div>
+
+                <!-- 補足解説 -->
+                <div class="p-3 bg-white/90 rounded-xl border border-emerald-200 text-xs text-slate-700 leading-normal space-y-1">
+                  <span class="font-bold text-emerald-900 block">💡 ポイント解説</span>
+                  <p id="card-note-text">
+                    補足説明や反応式などがここに表示されます。
+                  </p>
+                </div>
+              </div>
+
+              <!-- スワイプ案内 -->
+              <div class="pt-3 border-t border-emerald-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
+                <span>👈 もう一度スワイプ</span>
+                <span>覚えたら右スワイプ 👉</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- スマホ向けアクションガイド -->
+      <div id="swipe-guide-text" class="text-center text-xs font-bold text-slate-500 py-1 transition-all">
+        👆 カードをタップして答えをチェック
+      </div>
+
+      <!-- 操作ボタンエリア（2フェーズ切り替え） -->
+      <div id="controls-container" class="pt-1">
+        
+        <!-- フェーズ1: 問題表示中（答えを見るボタン） -->
+        <div id="controls-question-phase" class="w-full">
+          <button id="btn-show-answer-large" class="w-full py-4 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 active:scale-98 text-white font-bold rounded-2xl shadow-md transition flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            <span class="text-base tracking-wide">答え・解説を確認する</span>
+          </button>
+        </div>
+
+        <!-- フェーズ2: 答え確認後（覚えた / もう一度 の判定ボタン） -->
+        <div id="controls-answer-phase" class="hidden w-full space-y-2">
+          <div class="grid grid-cols-2 gap-3">
+            <!-- もう一度（要復習） -->
+            <button id="btn-review" class="py-3.5 px-3 bg-rose-50 hover:bg-rose-100 active:bg-rose-200 border-2 border-rose-300 text-rose-700 font-bold rounded-2xl shadow-xs transition flex flex-col items-center justify-center gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span class="text-base">もう一度</span>
+              </div>
+              <span class="text-[11px] text-rose-500 font-semibold">👈 左スワイプ</span>
+            </button>
+
+            <!-- 覚えた（正解） -->
+            <button id="btn-correct" class="py-3.5 px-3 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold rounded-2xl shadow-md transition flex flex-col items-center justify-center gap-0.5">
+              <div class="flex items-center gap-1.5">
+                <span class="text-base">覚えた</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+                </svg>
+              </div>
+              <span class="text-[11px] text-emerald-100 font-semibold">右スワイプ 👉</span>
+            </button>
+          </div>
+
+          <!-- 問題に戻る補助リンク -->
+          <div class="text-center">
+            <button id="btn-flip-back" class="text-xs text-slate-400 hover:text-slate-600 underline py-1">
+              問題文を再確認する
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- 3. 結果・リザルト画面 -->
+    <!-- ============================================================ -->
+    <section id="screen-result" class="hidden w-full max-w-xl mx-auto space-y-6">
+      
+      <!-- スコアカード -->
+      <div class="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-sm text-center space-y-4">
+        <h2 class="text-xl sm:text-2xl font-black text-slate-800">
+          テスト結果
+        </h2>
+
+        <!-- 正答率パーセント -->
+        <div class="py-2">
+          <span id="result-score-percent" class="text-5xl sm:text-6xl font-black text-blue-600 tracking-tight">
+            0%
+          </span>
+          <p class="text-xs text-slate-500 font-medium mt-1">正答率（習熟度）</p>
+        </div>
+
+        <div id="result-score-badge" class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold bg-blue-100 text-blue-800">
+          よくがんばりました！
+        </div>
+
+        <!-- 内訳グリッド -->
+        <div class="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100">
+          <div class="p-3 bg-slate-50 rounded-xl">
+            <span class="text-xs text-slate-500 block">総出題数</span>
+            <span id="result-total-count" class="text-lg font-bold text-slate-800">0</span>
+          </div>
+          <div class="p-3 bg-emerald-50 rounded-xl">
+            <span class="text-xs text-emerald-700 block font-medium">覚えた</span>
+            <span id="result-correct-count" class="text-lg font-bold text-emerald-700">0</span>
+          </div>
+          <div class="p-3 bg-rose-50 rounded-xl">
+            <span class="text-xs text-rose-700 block font-medium">要復習</span>
+            <span id="result-review-count" class="text-lg font-bold text-rose-700">0</span>
+          </div>
+        </div>
+
+        <!-- 再挑戦ボタン群 -->
+        <div class="pt-4 space-y-2">
+          <!-- 間違えた問題だけ再挑戦 -->
+          <button id="btn-retry-review-only" class="w-full py-3.5 bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white font-bold rounded-xl shadow-md transition flex items-center justify-center gap-2">
+            <span>🔥 間違えた問題だけもう一周する</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-retry-same" class="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition text-sm">
+              🔄 同じ条件で再挑戦
+            </button>
+            <button id="btn-back-to-start" class="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition text-sm">
+              🏠 範囲選択に戻る
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 要復習リストセクション -->
+      <div id="result-review-section" class="space-y-3">
+        <h3 class="text-sm font-bold text-slate-700 flex items-center gap-1.5 px-1">
+          <span>📋 要復習リスト</span>
+          <span class="text-xs font-normal text-slate-500">（クリックで解説を確認）</span>
+        </h3>
+
+        <!-- 全問正解時のメッセージ -->
+        <div id="result-no-review-message" class="hidden p-8 text-center bg-white rounded-2xl border border-slate-200 space-y-2">
+          <div class="text-4xl">🎉</div>
+          <h4 class="font-bold text-slate-800 text-lg">全問パーフェクト！</h4>
+          <p class="text-xs text-slate-500">
+            要復習の問題はありません。次の講義に進むか、別範囲に挑戦しましょう！
+          </p>
+        </div>
+
+        <!-- 要復習リスト一覧 -->
+        <div id="result-review-list" class="space-y-2.5">
+          <!-- JSで動的生成 -->
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- 問題一覧・チェックモーダル -->
+  <!-- ============================================================ -->
+  <div id="modal-question-list" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-6 bg-slate-900/60 backdrop-blur-xs">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-4xl h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800">
+      
+      <!-- モーダルヘッダー -->
+      <div class="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/80 dark:bg-slate-800/50">
+        <div class="flex items-center gap-2.5">
+          <span class="text-xl">📖</span>
+          <div>
+            <h3 class="font-bold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
+              <span>登録問題一覧・チェック</span>
+              <span id="modal-list-count-badge" class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-semibold">
+                全 60 問
+              </span>
+            </h3>
+            <p class="text-xs text-slate-500">登録されているすべての問題・正解・解説をまとめて確認できます</p>
+          </div>
+        </div>
+
+        <button id="btn-close-list-modal" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-200/60 dark:hover:bg-slate-800 transition" title="閉じる">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- フィルター・検索バー -->
+      <div class="p-3 sm:p-4 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 space-y-2.5">
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-center">
+          <!-- 講絞り込み -->
+          <div class="sm:col-span-4">
+            <select id="modal-filter-unit" class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="all">すべての講（全問表示）</option>
+              <!-- JSで動的生成 -->
+            </select>
+          </div>
+
+          <!-- レベル絞り込み -->
+          <div class="sm:col-span-3">
+            <select id="modal-filter-level" class="w-full text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <option value="all">全レベル（Lv1+Lv2）</option>
+              <option value="1">⚡ Lv.1 秒殺一問一答</option>
+              <option value="2">📚 Lv.2 標準・総合</option>
+            </select>
+          </div>
+
+          <!-- キーワード検索 -->
+          <div class="sm:col-span-5 relative">
+            <input type="text" id="modal-search-input" placeholder="キーワード検索（問題・正解・解説）..." class="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg pl-8 pr-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs pt-1 border-t border-slate-100 dark:border-slate-800/80">
+          <label class="flex items-center gap-1.5 cursor-pointer text-amber-700 dark:text-amber-400 select-none font-bold">
+            <input type="checkbox" id="modal-filter-importance" class="rounded text-amber-500 focus:ring-amber-400">
+            <span>⭐ 最重要問（★★★）のみ表示</span>
+          </label>
+          <label class="flex items-center gap-1.5 cursor-pointer text-slate-700 dark:text-slate-300 select-none">
+            <input type="checkbox" id="modal-toggle-answers" checked class="rounded text-blue-600 focus:ring-blue-500">
+            <span class="font-medium">解答を表示</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 問題カード一覧（スクロールエリア） -->
+      <div id="modal-question-cards-container" class="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3 bg-slate-50/50 dark:bg-slate-950/30">
+        <!-- JSで動的生成 -->
+      </div>
+
+      <!-- モーダルフッター -->
+      <div class="p-3 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center justify-between text-xs text-slate-500">
+        <span>💡 キーボード <kbd>Esc</kbd> でも閉じられます</span>
+        <button id="btn-close-list-modal-bottom" class="px-4 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition">
+          閉じる
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- フッター -->
+  <!-- ============================================================ -->
+  <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+    <div class="max-w-4xl mx-auto px-4 space-y-1">
+      <p class="font-medium text-slate-700">無機化学 一問一答フラッシュカード Webアプリ</p>
+      <p>※ 毎週の講義追加は <code>data/questions.js</code> に問題を追加するだけで自動反映されます。</p>
+    </div>
+  </footer>
+
+  <!-- スクリプト読み込み -->
+  <!-- 1. 問題データ -->
+  <script src="data/questions.js"></script>
+  <!-- 2. 化学式フォーマッター -->
+  <script src="js/chem-formatter.js"></script>
+  <!-- 3. アプリケーション本体 -->
+  <script src="js/app.js"></script>
+</body>
+</html>
