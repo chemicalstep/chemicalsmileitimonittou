@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>無機化学 一問一答フラッシュカード | 大学受験対策</title>
   <meta name="description" content="大学受験生向けの無機化学一問一答フラッシュカードWebアプリ。講義の進度に合わせて範囲を自由に指定してサクサク復習できます。">
 
@@ -54,6 +54,13 @@
   --card-shadow-active: 0 24px 38px -8px rgba(0, 0, 0, 0.16), 0 12px 18px -6px rgba(0, 0, 0, 0.08);
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  width: 100%;
+  position: relative;
+}
+
 body {
   font-family: 'Noto Sans JP', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -63,6 +70,10 @@ body {
   min-height: 100vh;
   min-height: 100dvh;
   touch-action: manipulation;
+}
+
+#screen-card {
+  overflow-x: clip;
 }
 
 /* 3Dカード反転＆スワイプ用ステージ */
@@ -163,17 +174,19 @@ body {
   transform: rotate(-12deg);
 }
 
-/* スワイプアウト時のアニメーション */
+/* スワイプアウト時のアニメーション（画面縮小バグ防止＆高速化） */
 .card-fly-right {
-  transform: translate3d(140%, 0, 0) rotate(22deg) !important;
+  transform: translate3d(100%, 0, 0) rotate(16deg) scale(0.9) !important;
   opacity: 0 !important;
-  transition: transform 0.28s ease-out, opacity 0.28s ease-out !important;
+  pointer-events: none !important;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease-out !important;
 }
 
 .card-fly-left {
-  transform: translate3d(-140%, 0, 0) rotate(-22deg) !important;
+  transform: translate3d(-100%, 0, 0) rotate(-16deg) scale(0.9) !important;
   opacity: 0 !important;
-  transition: transform 0.28s ease-out, opacity 0.28s ease-out !important;
+  pointer-events: none !important;
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.2s ease-out !important;
 }
 
 /* 次のカードの登場アニメーション */
@@ -648,7 +661,7 @@ details[open] summary .accordion-arrow {
                   </svg>
                   <span>タップして答えを確認</span>
                 </span>
-                <span class="text-slate-400 text-[11px] font-medium">裏面で左右スワイプ判定</span>
+                <span class="text-slate-400 text-[11px] font-medium">裏面で左右タップ/スワイプ判定</span>
               </div>
             </div>
 
@@ -693,10 +706,15 @@ details[open] summary .accordion-arrow {
                 </div>
               </div>
 
-              <!-- スワイプ案内 -->
-              <div class="pt-3 border-t border-emerald-100 flex items-center justify-between text-xs text-emerald-700 font-semibold">
-                <span>👈 もう一度スワイプ</span>
-                <span>覚えたら右スワイプ 👉</span>
+              <!-- 左右タップ＆スワイプ案内 -->
+              <div class="pt-2.5 border-t border-emerald-100 flex items-center justify-between text-xs font-bold select-none">
+                <span class="flex items-center gap-1 bg-rose-50 text-rose-700 border border-rose-200/90 px-2.5 py-1 rounded-lg shadow-2xs">
+                  <span>👈 左タップ: もう一度</span>
+                </span>
+                <span class="text-[10px] text-emerald-600/70 font-medium">スワイプも可</span>
+                <span class="flex items-center gap-1 bg-emerald-100 text-emerald-800 border border-emerald-300 px-2.5 py-1 rounded-lg shadow-2xs">
+                  <span>右タップ: 覚えた 👉</span>
+                </span>
               </div>
             </div>
 
@@ -3262,6 +3280,10 @@ window.ChemFormatter = ChemFormatter;
    * ガイドテキストおよび操作ボタンの表示切り替え
    * （問題フェーズ vs 解答・判定フェーズ）
    */
+  /**
+   * ガイドテキストおよび操作ボタンの表示切り替え
+   * （問題フェーズ vs 解答・判定フェーズ）
+   */
   function updateGuideText() {
     if (state.isFlipped) {
       // 【解答チェック後・判定フェーズ】
@@ -3271,13 +3293,13 @@ window.ChemFormatter = ChemFormatter;
       if (dom.swipeGuideText) {
         if (state.isTimedOut) {
           dom.swipeGuideText.innerHTML = `
-            <span class="text-rose-600 font-bold">⏰ 時間切れ（要復習に登録済）。次へ進んでください 👉</span>
+            <span class="text-rose-600 font-bold">⏰ 時間切れ（要復習に登録済）。左右どちらかをタップして次へ進んでください 👉</span>
           `;
         } else {
           dom.swipeGuideText.innerHTML = `
-            <span class="inline-flex items-center gap-1 text-rose-600 font-bold">👈 もう一度（左スワイプ）</span>
-            <span class="text-slate-300 mx-2">|</span>
-            <span class="inline-flex items-center gap-1 text-emerald-600 font-bold">覚えた（右スワイプ） 👉</span>
+            <span class="inline-flex items-center gap-1 text-rose-600 font-bold">👈 左半分タップ: もう一度</span>
+            <span class="text-slate-300 mx-1.5">|</span>
+            <span class="inline-flex items-center gap-1 text-emerald-600 font-bold">右半分タップ: 覚えた 👉</span>
           `;
         }
       }
@@ -3313,6 +3335,7 @@ window.ChemFormatter = ChemFormatter;
    * スワイプアニメーション付きの回答進行
    */
   let isAnswerAnimating = false;
+  let lastTouchEndTime = 0; // タッチ操作後の遅延クリックイベント除外用
 
   function handleAnswerWithAnimation(isCorrect) {
     if (isAnswerAnimating) return;
@@ -3339,7 +3362,7 @@ window.ChemFormatter = ChemFormatter;
     setTimeout(() => {
       handleAnswer(isCorrect);
       isAnswerAnimating = false;
-    }, 220);
+    }, 200);
   }
 
   /**
@@ -3500,12 +3523,26 @@ window.ChemFormatter = ChemFormatter;
       startSession();
     });
 
-    // カードのクリック / タップで反転
+    // カードのクリック / タップで反転 or 左右判定（PCマウス操作＆フォールバック）
     dom.cardWrapper.addEventListener('click', (e) => {
-      // ボタン等のクリックでなければ反転
-      if (!e.target.closest('button') && !e.target.closest('a')) {
+      // ボタン等のクリックでなければ処理
+      if (e.target.closest('button') || e.target.closest('a')) return;
+      if (isAnswerAnimating) return;
+
+      // 直前のタッチ操作による合成クリックイベントは除外（二重判定防止）
+      if (Date.now() - lastTouchEndTime < 450) return;
+
+      // 表面（問題表示中）なら裏返して答えを確認
+      if (!state.isFlipped) {
         toggleFlipCard();
+        return;
       }
+
+      // 裏面（解答表示中）ならカードの左右判定（左半分：もう一度、右半分：覚えた）
+      const rect = dom.cardWrapper.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const isRight = clickX >= (rect.width / 2);
+      handleAnswerWithAnimation(isRight);
     });
 
     // 答え確認ボタン（大型ボタン）
@@ -3902,12 +3939,13 @@ window.ChemFormatter = ChemFormatter;
         // 位置を中央に戻して答えを反転開示
         stage.classList.add('animating');
         stage.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
-        if (dom.stampCorrect) dom.stampCorrect.style.opacity = 0;
-        if (dom.stampReview) dom.stampReview.style.opacity = 0;
+        if (dom.stampCorrect) dom.stampCorrect.style.opacity = '0';
+        if (dom.stampReview) dom.stampReview.style.opacity = '0';
 
         // タップまたはスワイプ操作があれば答えをチェック
-        if (Math.abs(diffX) > 15 || (Math.abs(diffX) < 12 && Math.abs(diffY) < 12 && elapsed < 400)) {
+        if (Math.abs(diffX) > 15 || (Math.abs(diffX) < 18 && Math.abs(diffY) < 18 && elapsed < 400)) {
           if (!e.target.closest('button') && !e.target.closest('a')) {
+            lastTouchEndTime = Date.now();
             toggleFlipCard();
           }
         }
@@ -3915,10 +3953,22 @@ window.ChemFormatter = ChemFormatter;
       }
 
       // 【解答チェック後（裏面表示中）の場合】
-      // ① タップ判定（問題文に戻る）
-      if (Math.abs(diffX) < 12 && Math.abs(diffY) < 12 && elapsed < 350) {
+      // ① タップ判定（左右半分タップで覚えた/もう一度を判定！）
+      if (Math.abs(diffX) < 18 && Math.abs(diffY) < 18 && elapsed < 400) {
         if (!e.target.closest('button') && !e.target.closest('a')) {
-          toggleFlipCard();
+          lastTouchEndTime = Date.now();
+          // カードの中央より右か左かを判定
+          const rect = stage.getBoundingClientRect();
+          const tapX = currentX - rect.left;
+          const isRight = tapX >= (rect.width / 2);
+
+          if (isRight) {
+            // 右半分タップ: 覚えた！
+            handleAnswerWithAnimation(true);
+          } else {
+            // 左半分タップ: もう一度！
+            handleAnswerWithAnimation(false);
+          }
         }
         return;
       }
@@ -3929,16 +3979,18 @@ window.ChemFormatter = ChemFormatter;
 
       if (isRightSwipe) {
         // 右スワイプ: 覚えた！
+        lastTouchEndTime = Date.now();
         handleAnswerWithAnimation(true);
       } else if (isLeftSwipe) {
         // 左スワイプ: もう一度！
+        lastTouchEndTime = Date.now();
         handleAnswerWithAnimation(false);
       } else {
         // 閾値未満 → スプリングバックで中央に戻す
         stage.classList.add('animating');
         stage.style.transform = 'translate3d(0, 0, 0) rotate(0deg)';
-        if (dom.stampCorrect) dom.stampCorrect.style.opacity = 0;
-        if (dom.stampReview) dom.stampReview.style.opacity = 0;
+        if (dom.stampCorrect) dom.stampCorrect.style.opacity = '0';
+        if (dom.stampReview) dom.stampReview.style.opacity = '0';
       }
     });
   }
