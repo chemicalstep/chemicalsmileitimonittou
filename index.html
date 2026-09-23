@@ -35,7 +35,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 
   <!-- アプリCSS -->
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body class="bg-slate-50 text-slate-800 antialiased flex flex-col min-h-screen">
 
@@ -656,16 +656,16 @@
   <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
     <div class="max-w-4xl mx-auto px-4 space-y-1">
       <p class="font-medium text-slate-700">無機化学 一問一答フラッシュカード Webアプリ</p>
-      <p>※ 毎週の講義追加は <code>data/questions.js</code> に問題を追加するだけで自動反映されます。</p>
+      <p>※ 毎週の講義追加は <code>data./questions.js</code> に問題を追加するだけで自動反映されます。</p>
     </div>
   </footer>
 
   <!-- スクリプト読み込み -->
   <!-- 1. 問題データ -->
-  <script src="data/questions.js"></script>
+  <script src="data./questions.js"></script>
   <!-- 2. 化学式フォーマッター -->
-  <script src="js/chem-formatter.js"></script>
+  <script src="./chem-formatter.js"></script>
   <!-- 3. アプリケーション本体 -->
-  <script src="js/app.js"></script>
+  <script src="./app.js"></script>
 </body>
 </html>
