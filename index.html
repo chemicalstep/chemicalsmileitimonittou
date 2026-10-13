@@ -333,6 +333,32 @@ details[open] summary .accordion-arrow {
         </p>
       </div>
 
+      <!-- 🔥 弱点克服ストック（LocalStorage連携）特訓バー -->
+      <div id="saved-weak-box" class="bg-gradient-to-r from-rose-50 via-amber-50/70 to-orange-50 rounded-2xl p-4 border border-rose-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl font-black shrink-0">
+            🔥
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-extrabold text-slate-800">弱点克服ストック</span>
+              <span id="saved-weak-count-badge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600">0 問</span>
+            </div>
+            <p id="saved-weak-desc" class="text-[11px] text-slate-600 mt-0.5">
+              「もう一度」にした問題が自動保存され、次回もすぐ復習できます。
+            </p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <button id="btn-clear-weak" class="hidden text-[11px] text-slate-400 hover:text-rose-600 px-2 py-1.5 rounded-lg transition underline shrink-0" title="保存された弱点履歴をリセット">
+            リセット
+          </button>
+          <button id="btn-start-saved-weak" disabled class="w-full sm:w-auto px-4 py-2.5 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:text-slate-400 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center justify-center gap-1.5 shrink-0">
+            <span>🔥 弱点問題だけスタート</span>
+          </button>
+        </div>
+      </div>
+
       <!-- 設定カード -->
       <div class="bg-white rounded-2xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-6">
         
@@ -3125,6 +3151,8 @@ window.ChemFormatter = ChemFormatter;
 (function () {
   'use strict';
 
+  const STORAGE_KEY_WEAK_IDS = 'muki_chem_weak_ids_v1';
+
   // ==========================================
   // アプリケーション状態管理 (State)
   // ==========================================
@@ -3148,6 +3176,7 @@ window.ChemFormatter = ChemFormatter;
     isFlipped: false,        // カードが裏面かどうか
     correctIds: new Set(),   // 「覚えた」問題ID
     reviewIds: new Set(),    // 「もう一度（要復習）」問題ID
+    savedWeakIds: new Set(), // LocalStorage永続化の弱点ID
     isReviewSession: false,  // 間違えた問題だけの再挑戦セッションかどうか
 
     // タイマー管理
@@ -3169,6 +3198,12 @@ window.ChemFormatter = ChemFormatter;
     screenStart: document.getElementById('screen-start'),
     screenCard: document.getElementById('screen-card'),
     screenResult: document.getElementById('screen-result'),
+
+    // 弱点ストック用DOM
+    savedWeakCountBadge: document.getElementById('saved-weak-count-badge'),
+    savedWeakDesc: document.getElementById('saved-weak-desc'),
+    btnStartSavedWeak: document.getElementById('btn-start-saved-weak'),
+    btnClearWeak: document.getElementById('btn-clear-weak'),
 
     // スタート画面
     selectStartUnit: document.getElementById('select-start-unit'),
@@ -3246,10 +3281,61 @@ window.ChemFormatter = ChemFormatter;
   };
 
   // ==========================================
+  // LocalStorage 弱点ストック管理
+  // ==========================================
+  function loadSavedWeakIds() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_WEAK_IDS);
+      if (raw) {
+        const arr = JSON.parse(raw);
+        if (Array.isArray(arr)) {
+          state.savedWeakIds = new Set(arr.map(Number));
+        }
+      }
+    } catch (e) {
+      console.warn('LocalStorage読み込みエラー:', e);
+    }
+    updateSavedWeakUI();
+  }
+
+  function saveWeakIdsToStorage() {
+    try {
+      const arr = Array.from(state.savedWeakIds);
+      localStorage.setItem(STORAGE_KEY_WEAK_IDS, JSON.stringify(arr));
+    } catch (e) {
+      console.warn('LocalStorage保存エラー:', e);
+    }
+    updateSavedWeakUI();
+  }
+
+  function updateSavedWeakUI() {
+    const validWeakQuestions = state.allQuestions.filter(q => state.savedWeakIds.has(Number(q.id)));
+    const count = validWeakQuestions.length;
+
+    if (dom.savedWeakCountBadge) {
+      dom.savedWeakCountBadge.textContent = `${count} 問`;
+      dom.savedWeakCountBadge.className = count > 0
+        ? 'text-xs font-black px-2 py-0.5 rounded-full bg-rose-600 text-white'
+        : 'text-xs font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-600';
+    }
+    if (dom.btnStartSavedWeak) {
+      dom.btnStartSavedWeak.disabled = (count === 0);
+    }
+    if (dom.btnClearWeak) {
+      if (count > 0) {
+        dom.btnClearWeak.classList.remove('hidden');
+      } else {
+        dom.btnClearWeak.classList.add('hidden');
+      }
+    }
+  }
+
+  // ==========================================
   // 初期化 (Initialization)
   // ==========================================
   function initApp() {
     loadQuestionsData();
+    loadSavedWeakIds();
     setupEventListeners();
     setupKeyboardShortcuts();
     setupTouchGestures();
@@ -3296,6 +3382,7 @@ window.ChemFormatter = ChemFormatter;
     // スタート画面UIを構築
     renderStartScreenOptions();
     updateTargetCountPreview();
+    updateSavedWeakUI();
 
     // 総問題数バッジ更新
     if (dom.totalQuestionsBadge) {
@@ -3534,11 +3621,22 @@ window.ChemFormatter = ChemFormatter;
   // ==========================================
   function startSession(options = {}) {
     const isReview = !!options.reviewOnly;
-    state.isReviewSession = isReview;
+    const isSavedWeak = !!options.savedWeakOnly;
+    state.isReviewSession = isReview || isSavedWeak;
     state.isFlipped = false;
     state.currentIndex = 0;
 
-    if (isReview) {
+    if (isSavedWeak) {
+      // 保存された弱点ストックの問題だけで出題
+      const weakQuestions = state.allQuestions.filter(q => state.savedWeakIds.has(Number(q.id)));
+      if (weakQuestions.length === 0) {
+        alert('保存されている弱点問題はありません！');
+        return;
+      }
+      state.sessionQuestions = shuffleArray([...weakQuestions]);
+      state.reviewIds.clear();
+      state.correctIds.clear();
+    } else if (isReview) {
       // 要復習リストの問題だけで再出題
       const reviewQuestions = state.allQuestions.filter(q => state.reviewIds.has(q.id));
       state.sessionQuestions = shuffleArray([...reviewQuestions]);
@@ -3609,7 +3707,7 @@ window.ChemFormatter = ChemFormatter;
       scopeLabel = `第${state.selectedStartUnit}講${uTitle}`;
     }
     if (state.isReviewSession) {
-      scopeLabel = '🔥 要復習特訓モード';
+      scopeLabel = '🔥 弱点克服・要復習モード';
     }
     dom.cardScopeText.textContent = scopeLabel;
     dom.cardProgressText.textContent = `${currentNum} / ${total} 問`;
@@ -3757,12 +3855,15 @@ window.ChemFormatter = ChemFormatter;
       toggleFlipCard();
     }
 
-    // 自動的に「もう一度（要復習）」に登録！
+    // 自動的に「もう一度（要復習）」＆「弱点克服ストック」に登録！
     const currentQ = state.sessionQuestions[state.currentIndex];
     if (currentQ) {
       state.reviewIds.add(currentQ.id);
       state.correctIds.delete(currentQ.id);
-      updateStatsCounters();
+      state.savedWeakIds.add(Number(currentQ.id));
+      saveWeakIdsToStorage();
+      dom.statCorrectCount.textContent = state.correctIds.size;
+      dom.statReviewCount.textContent = state.reviewIds.size;
     }
 
     // 時間切れアラートを表示
@@ -3772,15 +3873,11 @@ window.ChemFormatter = ChemFormatter;
 
     if (dom.swipeGuideText) {
       dom.swipeGuideText.innerHTML = `
-        <span class="inline-flex items-center gap-1 text-rose-600 font-bold">⏰ 時間切れ！「要復習」に追加されました。解説を確認して次へ進みましょう</span>
+        <span class="inline-flex items-center gap-1 text-rose-600 font-bold">⏰ 時間切れ！「弱点克服ストック」に追加されました。解説を確認して次へ進みましょう</span>
       `;
     }
   }
 
-  /**
-   * ガイドテキストおよび操作ボタンの表示切り替え
-   * （問題フェーズ vs 解答・判定フェーズ）
-   */
   /**
    * ガイドテキストおよび操作ボタンの表示切り替え
    * （問題フェーズ vs 解答・判定フェーズ）
@@ -3794,7 +3891,7 @@ window.ChemFormatter = ChemFormatter;
       if (dom.swipeGuideText) {
         if (state.isTimedOut) {
           dom.swipeGuideText.innerHTML = `
-            <span class="text-rose-600 font-bold">⏰ 時間切れ（要復習に登録済）。左右どちらかをタップして次へ進んでください 👉</span>
+            <span class="text-rose-600 font-bold">⏰ 時間切れ（弱点ストックに登録済）。左右どちらかをタップして次へ進んでください 👉</span>
           `;
         } else {
           dom.swipeGuideText.innerHTML = `
@@ -3873,13 +3970,22 @@ window.ChemFormatter = ChemFormatter;
     const currentQ = state.sessionQuestions[state.currentIndex];
     if (!currentQ) return;
 
-    if (isCorrect) {
+    if (isCorrect && !state.isTimedOut) {
       state.correctIds.add(currentQ.id);
       state.reviewIds.delete(currentQ.id);
+      // 弱点ストックからも消去（克服！）
+      state.savedWeakIds.delete(Number(currentQ.id));
+    } else if (isCorrect && state.isTimedOut) {
+      // 時間切れ時は要復習に残す
+      state.reviewIds.add(currentQ.id);
+      state.savedWeakIds.add(Number(currentQ.id));
     } else {
       state.reviewIds.add(currentQ.id);
       state.correctIds.delete(currentQ.id);
+      // 弱点ストックに追加保存！
+      state.savedWeakIds.add(Number(currentQ.id));
     }
+    saveWeakIdsToStorage();
 
     // 次の問題へ
     if (state.currentIndex + 1 < state.sessionQuestions.length) {
@@ -3899,6 +4005,7 @@ window.ChemFormatter = ChemFormatter;
   // ==========================================
   function showResultScreen() {
     showScreen(dom.screenResult);
+    updateSavedWeakUI();
 
     const total = state.sessionQuestions.length;
     const correctCount = state.correctIds.size;
@@ -3919,7 +4026,7 @@ window.ChemFormatter = ChemFormatter;
       dom.resultScoreBadge.innerHTML = '🎯 合格基準クリア！要復習問題を固めましょう！';
     } else {
       dom.resultScoreBadge.className = 'inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300';
-      dom.resultScoreBadge.innerHTML = '📚 もう一周して記憶を定着させよう！';
+      dom.resultScoreBadge.innerHTML = '📚 もう一周して記憶を定着させよう！（弱点ストックに自動保存済）';
     }
 
     // 要復習リストの生成
@@ -4024,6 +4131,23 @@ window.ChemFormatter = ChemFormatter;
       startSession();
     });
 
+    // 🔥 保存された弱点問題だけスタート
+    if (dom.btnStartSavedWeak) {
+      dom.btnStartSavedWeak.addEventListener('click', () => {
+        startSession({ savedWeakOnly: true });
+      });
+    }
+
+    // 弱点履歴リセット
+    if (dom.btnClearWeak) {
+      dom.btnClearWeak.addEventListener('click', () => {
+        if (confirm('保存されている弱点問題の履歴をすべてリセットしますか？')) {
+          state.savedWeakIds.clear();
+          saveWeakIdsToStorage();
+        }
+      });
+    }
+
     // カードのクリック / タップで反転 or 左右判定（PCマウス操作＆フォールバック）
     dom.cardWrapper.addEventListener('click', (e) => {
       // ボタン等のクリックでなければ処理
@@ -4078,6 +4202,7 @@ window.ChemFormatter = ChemFormatter;
       if (confirm('学習を中断してスタート画面に戻りますか？')) {
         stopQuestionTimer();
         showScreen(dom.screenStart);
+        updateSavedWeakUI();
       }
     });
 
@@ -4094,6 +4219,7 @@ window.ChemFormatter = ChemFormatter;
       stopQuestionTimer();
       showScreen(dom.screenStart);
       updateTargetCountPreview();
+      updateSavedWeakUI();
     });
 
     // 外部JSONファイル読み込み（ドラッグ＆ドロップまたはファイル選択）
