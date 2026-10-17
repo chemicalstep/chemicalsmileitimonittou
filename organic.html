@@ -257,7 +257,7 @@ kbd {
   <!-- ============================================================ -->
   <header class="bg-white/85 backdrop-blur-md border-b border-emerald-200/80 sticky top-0 z-30">
     <div class="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-      <div class="flex items-center gap-2.5">
+            <div class="flex items-center gap-2.5">
         <span class="text-2xl p-1.5 bg-emerald-100 text-emerald-700 rounded-xl shadow-xs">🌿</span>
         <div>
           <div class="flex items-center gap-2">
@@ -269,6 +269,10 @@ kbd {
       </div>
 
       <div class="flex items-center gap-2">
+        <a href="./theory.html" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition flex items-center gap-1 shadow-2xs" title="理論化学の一問一答へ切り替え">
+          <span>📘</span>
+          <span>理論化学へ</span>
+        </a>
         <a href="./index.html" class="link-to-inorganic text-xs font-bold px-2.5 py-1 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-1 shadow-2xs" title="無機化学の一問一答へ切り替え">
           <span>🧪</span>
           <span>無機化学へ</span>
@@ -306,8 +310,7 @@ kbd {
     <!-- ============================================================ -->
     <!-- 1. 範囲指定・スタート画面 -->
     <!-- ============================================================ -->
-    <section id="screen-start" class="w-full max-w-xl mx-auto space-y-5">
-      <!-- 分野切り替えタブ（無機化学 ⇄ 有機化学） -->
+        <section id="screen-start" class="w-full max-w-xl mx-auto space-y-5">
       <!-- 分野切り替えタブ（理論 ⇄ 無機 ⇄ 有機） -->
       <div class="bg-slate-200/80 p-1.5 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-1.5 shadow-inner">
         <a href="./theory.html" class="py-2.5 px-3 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-800 hover:text-white font-extrabold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1 border border-indigo-500/30">
@@ -324,7 +327,6 @@ kbd {
           <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full hidden sm:inline">選択中</span>
         </div>
       </div>
-      </div>
 
       <!-- ヒーローセクション -->
       <div class="text-center space-y-2">
@@ -339,7 +341,6 @@ kbd {
         </p>
       </div>
 
-      <!-- 🔥 新機能：保存された弱点問題（LocalStorage連携）特訓バー -->
       <div id="saved-weak-box" class="bg-gradient-to-r from-rose-50 via-amber-50/70 to-orange-50 rounded-2xl p-4 border border-rose-200/90 shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-600 flex items-center justify-center text-xl font-black shrink-0">
