@@ -308,19 +308,22 @@ kbd {
     <!-- ============================================================ -->
     <section id="screen-start" class="w-full max-w-xl mx-auto space-y-5">
       <!-- 分野切り替えタブ（無機化学 ⇄ 有機化学） -->
-      <div class="bg-slate-200/80 p-1.5 rounded-2xl grid grid-cols-2 gap-1.5 shadow-inner">
-        <a href="./index.html" class="link-to-inorganic py-2.5 px-3 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-800 hover:text-white font-extrabold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1.5 border border-blue-500/30">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M11 17l-5-5m0 0l5-5m-5 5h12"></path>
-          </svg>
-          <span>🧪</span>
-          <span>無機化学（全575問）へ切替</span>
+      <!-- 分野切り替えタブ（理論 ⇄ 無機 ⇄ 有機） -->
+      <div class="bg-slate-200/80 p-1.5 rounded-2xl grid grid-cols-1 sm:grid-cols-3 gap-1.5 shadow-inner">
+        <a href="./theory.html" class="py-2.5 px-3 rounded-xl bg-indigo-600/10 hover:bg-indigo-600 text-indigo-800 hover:text-white font-extrabold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1 border border-indigo-500/30">
+          <span>📘</span>
+          <span>理論化学（全525問）</span>
         </a>
-        <div class="py-2.5 px-3 rounded-xl bg-white text-emerald-700 font-extrabold text-xs sm:text-sm text-center shadow-xs flex items-center justify-center gap-1.5 border border-emerald-200/60">
+        <a href="./index.html" class="py-2.5 px-3 rounded-xl bg-blue-600/10 hover:bg-blue-600 text-blue-800 hover:text-white font-extrabold text-xs sm:text-sm text-center transition flex items-center justify-center gap-1 border border-blue-500/30">
+          <span>🧪</span>
+          <span>無機化学（全575問）</span>
+        </a>
+        <div class="py-2.5 px-3 rounded-xl bg-white text-emerald-700 font-extrabold text-xs sm:text-sm text-center shadow-xs flex items-center justify-center gap-1 border border-emerald-200/60">
           <span>🌿</span>
           <span>有機・高分子（全653問）</span>
-          <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-full hidden sm:inline">選択中</span>
+          <span class="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded-full hidden sm:inline">選択中</span>
         </div>
+      </div>
       </div>
 
       <!-- ヒーローセクション -->
